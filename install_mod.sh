@@ -1,15 +1,18 @@
 #!/bin/bash
+set -e
+set -x
 source .env
 
 MOD_NAME="p2agent"
-MOD_ROOT_DIR="$P2_ROOT_DIR/../../sourcemods/$MOD_NAME"
-
-echo $P2_ROOT_DIR
-echo $MOD_ROOT_DIR
+# This should be steamapps dir on drive where steam is installed, not necessarily where portal 2 lives
+MOD_ROOT_DIR="$STEAMAPPS_DIR/$MOD_NAME"
 
 mkdir -p "$MOD_ROOT_DIR/cfg"
 mkdir -p "$MOD_ROOT_DIR/maps/soundcache"
 
-tree "$MOD_ROOT_DIR"
+cp -r "$P2_ROOT_DIR/portal2_dlc2/maps/soundcache/_master.cache" "$MOD_ROOT_DIR/maps/soundcache"
+cp gameinfo.txt "$MOD_ROOT_DIR/"
+sed -i 's@portal2_dlc2$@'"\"$P2_ROOT_DIR"'/portal2_dlc2\"@g' "$MOD_ROOT_DIR/gameinfo.txt"
+sed -i 's@portal2$@'"\"$P2_ROOT_DIR"'/portal2\"@g' "$MOD_ROOT_DIR/gameinfo.txt"
 
-cp -r "$MOD_ROOT_DIR/maps/soundcache" "$P2_ROOT_DIR/portal2_dlc2/maps/soundcache"
+tree "$MOD_ROOT_DIR"

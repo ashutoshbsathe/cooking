@@ -14,5 +14,6 @@ cp -r "$P2_ROOT_DIR/portal2_dlc2/maps/soundcache/_master.cache" "$MOD_ROOT_DIR/m
 cp gameinfo.txt "$MOD_ROOT_DIR/"
 sed -i 's@portal2_dlc2$@'"\"$P2_ROOT_DIR"'/portal2_dlc2\"@g' "$MOD_ROOT_DIR/gameinfo.txt"
 sed -i 's@portal2$@'"\"$P2_ROOT_DIR"'/portal2\"@g' "$MOD_ROOT_DIR/gameinfo.txt"
+cp pak01_dir.vpk "$MOD_ROOT_DIR/"
 
 tree "$MOD_ROOT_DIR"

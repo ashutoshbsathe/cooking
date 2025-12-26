@@ -1,6 +1,6 @@
 "GameInfo"
 {
-    game            "Your Mod's Name"
+    game            "p2agent"
     GameData        "portal2.fgd"
     FileSystem
     {

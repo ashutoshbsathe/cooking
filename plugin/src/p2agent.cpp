@@ -1,69 +1,102 @@
-#include "CommandBuffer.h"
-#include "eiface.h"
-#include "interface.h"
-#include "iserverplugin.h"
+#ifdef _WIN32
+#define DLL_EXPORT __declspec(dllexport)
+#else
+#define DLL_EXPORT __attribute__((visibility("default")))
+#endif
 
-IVEngineServer *engine = nullptr;
+#ifndef _WIN32
+#include <dlfcn.h>
+#endif
+#include <cstring>
 
-class P2AgentPlugin final : public IServerPluginCallbacks {
+// --------------------------------------------------
+// Minimal Source types
+// --------------------------------------------------
+
+typedef int bool32;
+
+class IServerPluginCallbacks {
 public:
-  bool Load(CreateInterfaceFn interfaceFactory,
-            CreateInterfaceFn gameServerFactory) override {
-    engine = (IVEngineServer *)interfaceFactory(INTERFACEVERSION_VENGINESERVER,
-                                                nullptr);
-
-    if (engine) {
-      engine->LogPrint("[p2agent] Hello from native plugin\n");
-    }
-
-    return true;
+  virtual bool32 Load(void *interfaceFactory, void *gameServerFactory) = 0;
+  virtual void Unload() = 0;
+  virtual void Pause() {}
+  virtual void UnPause() {}
+  virtual const char *GetPluginDescription() = 0;
+  virtual void LevelInit(char const *pMapName) {}
+  virtual void ServerActivate(void *pEdictList, int edictCount, int clientMax) {
   }
-
-  void Unload() override {}
-  void Pause() override {}
-  void UnPause() override {}
-  const char *GetPluginDescription() override {
-    return "p2agent native plugin";
-  }
-
-  void LevelInit(char const *) override {}
-  void ServerActivate(edict_t *, int, int) override {}
-  void GameFrame(bool) override {}
-  void LevelShutdown() override {}
-
-  void ClientActive(edict_t *) override {}
-  void ClientDisconnect(edict_t *) override {}
-  void ClientPutInServer(edict_t *, char const *) override {}
-  void SetCommandClient(int) override {}
-  void ClientSettingsChanged(edict_t *) override {}
-
-  PLUGIN_RESULT ClientConnect(bool *, edict_t *, char const *, char const *,
-                              char *, int) override {
-    return PLUGIN_CONTINUE;
-  }
-
-  PLUGIN_RESULT ClientCommand(edict_t *pEntity, const CCommand &args) override {
-    if (engine && args.ArgC() > 0) {
-      engine->LogPrint("[p2agent] ClientCommand received\n");
-    }
-    return PLUGIN_CONTINUE;
-  }
-
-  PLUGIN_RESULT NetworkIDValidated(char const *, char const *) override {
-    return PLUGIN_CONTINUE;
-  }
-
-  void OnQueryCvarValueFinished(QueryCvarCookie_t, edict_t *,
-                                EQueryCvarValueStatus, char const *,
-                                char const *) override {}
-
-  // REQUIRED in Portal 2
-  void OnEdictAllocated(edict_t *) override {}
-  void OnEdictFreed(const edict_t *) override {}
+  virtual void GameFrame(bool simulating) {}
+  virtual void LevelShutdown() {}
+  virtual void ClientActive(void *pEntity) {}
+  virtual void ClientDisconnect(void *pEntity) {}
+  virtual void ClientPutInServer(void *pEntity, char const *playername) {}
+  virtual void SetCommandClient(int index) {}
+  virtual void ClientSettingsChanged(void *pEdict) {}
+  virtual void ClientConnect(bool32 *bAllowConnect, void *pEntity,
+                             const char *pszName, const char *pszAddress,
+                             char *reject, int maxrejectlen) {}
+  virtual void ClientCommand(void *pEntity) {}
+  virtual void NetworkIDValidated(const char *pszUserName,
+                                  const char *pszNetworkID) {}
+  virtual void OnQueryCvarValueFinished(int iCookie, void *pPlayerEntity,
+                                        int eStatus, const char *pCvarName,
+                                        const char *pCvarValue) {}
+  virtual void OnEdictAllocated(void *edict) {}
+  virtual void OnEdictFreed(const void *edict) {}
 };
 
-P2AgentPlugin g_P2Agent;
+// --------------------------------------------------
+// Msg() import (tier0)
+// --------------------------------------------------
 
-EXPOSE_SINGLE_INTERFACE_GLOBALVAR(P2AgentPlugin, IServerPluginCallbacks,
-                                  INTERFACEVERSION_ISERVERPLUGINCALLBACKS,
-                                  g_P2Agent);
+typedef void (*MsgFn)(const char *fmt, ...);
+MsgFn Msg = nullptr;
+
+// --------------------------------------------------
+// Plugin implementation
+// --------------------------------------------------
+
+class HelloPlugin : public IServerPluginCallbacks {
+public:
+  bool32 Load(void *interfaceFactory, void *gameServerFactory) override {
+    // tier0 exports Msg, grab it dynamically
+#ifdef _WIN32
+    auto tier0 = GetModuleHandleA("tier0.dll");
+    Msg = (MsgFn)GetProcAddress(tier0, "Msg");
+#else
+    Msg = (MsgFn)dlsym(RTLD_DEFAULT, "Msg");
+#endif
+
+    if (Msg) {
+      Msg("[HelloPlugin] Hello World from Portal 2!\n");
+    }
+    return 1;
+  }
+
+  void Unload() override {
+    if (Msg) {
+      Msg("[HelloPlugin] Unloaded.\n");
+    }
+  }
+
+  const char *GetPluginDescription() override {
+    return "Minimal Hello World Plugin";
+  }
+};
+
+// --------------------------------------------------
+// Factory export
+// --------------------------------------------------
+
+HelloPlugin g_Plugin;
+
+extern "C" DLL_EXPORT void *CreateInterface(const char *name, int *ret) {
+  if (!std::strcmp(name, "ISERVERPLUGINCALLBACKS003")) {
+    if (ret)
+      *ret = 0;
+    return &g_Plugin;
+  }
+  if (ret)
+    *ret = 1;
+  return nullptr;
+}

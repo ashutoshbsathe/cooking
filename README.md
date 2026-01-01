@@ -9,7 +9,7 @@ after you've installed the mod using `bash install_mod.sh`, it is recommended to
 
 1) keep Steam in offline mode (cloud saves are annoying)
 2) add `-dev -insecure -console -novid -high -vulkan -sw -w 640 -h 480` to the launch options for your mod in Steam. also launch it once using these options to confirm everything works
-3) then assign a bind to your windowmanager for launching it `steam steam steam://rungameid/<MOD_APPID>`
+3) then assign a bind to your windowmanager for launching it `steam steam://rungameid/<MOD_APPID>`
 
 finding `MOD_APPID`
 

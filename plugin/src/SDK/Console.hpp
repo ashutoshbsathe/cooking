@@ -1,6 +1,6 @@
 #pragma once
+#include "Color.hpp"
 #include "Memory.hpp"
-#include "SDK/Color.hpp"
 
 // Platform-specific calling convention
 #ifndef __cdecl

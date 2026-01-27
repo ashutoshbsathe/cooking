@@ -9,7 +9,7 @@
 #include <string>
 #endif
 
-#include "Debug.hpp"
+#include "../Utils/Debug.hpp"
 #include <vector>
 
 namespace Memory {

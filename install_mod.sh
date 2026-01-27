@@ -16,9 +16,11 @@ sed -i 's@portal2_dlc2$@'"\"$P2_ROOT_DIR"'/portal2_dlc2\"@g' "$MOD_ROOT_DIR/game
 sed -i 's@portal2$@'"\"$P2_ROOT_DIR"'/portal2\"@g' "$MOD_ROOT_DIR/gameinfo.txt"
 
 # plugin
-mkdir -p build
-g++ -m32 -shared -fPIC plugin/src/p2agent.cpp -o build/p2agent.so
-cp build/p2agent.so "$P2_ROOT_DIR/portal2/"
+cd plugin
+make clean
+make
+cd ..
+cp build/p2harness.so "$P2_ROOT_DIR/portal2/"
 
 cp pak01_dir.vpk "$MOD_ROOT_DIR/"
 cp -r cfg/ "$MOD_ROOT_DIR/"

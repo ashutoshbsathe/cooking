@@ -1,5 +1,5 @@
 #include "Console.hpp"
-#include "Debug.hpp"
+#include "../Utils/Debug.hpp"
 
 bool Console::Init() {
   DebugLog("Console::Init() called");

@@ -2,11 +2,11 @@
 #include "SDK/ServerPlugin.hpp"
 
 #define PLUGIN_VERSION "1.0"
-#define PLUGIN_SIGNATURE "MinimalPlugin v" PLUGIN_VERSION
+#define PLUGIN_SIGNATURE "P2Harness v" PLUGIN_VERSION
 
-class MinimalPlugin : public IServerPluginCallbacks {
+class P2Harness : public IServerPluginCallbacks {
 public:
-  MinimalPlugin();
+  P2Harness();
 
   virtual bool Load(CreateInterfaceFn interfaceFactory,
                     CreateInterfaceFn gameServerFactory);
@@ -39,4 +39,4 @@ public:
   const char *Version() { return PLUGIN_VERSION; }
 };
 
-extern MinimalPlugin plugin;
+extern P2Harness plugin;
